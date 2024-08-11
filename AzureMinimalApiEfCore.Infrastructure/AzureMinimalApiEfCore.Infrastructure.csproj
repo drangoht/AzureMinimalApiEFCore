@@ -23,4 +23,8 @@
     <ProjectReference Include="..\AzureMinimalApiEFCore.Domain\AzureMinimalApiEFCore.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
+
 </Project>

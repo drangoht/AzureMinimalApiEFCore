@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AzureMinimalApiEfCore.Infrastructure.Migrations
 {
     [DbContext(typeof(BloggingContext))]
-    [Migration("20240808093548_NewStructureAndRelations")]
-    partial class NewStructureAndRelations
+    [Migration("20240811210807_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,11 +27,9 @@ namespace AzureMinimalApiEfCore.Infrastructure.Migrations
 
             modelBuilder.Entity("AzureMinimalApiEFCore.Domain.Blog", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -48,17 +46,15 @@ namespace AzureMinimalApiEfCore.Infrastructure.Migrations
 
             modelBuilder.Entity("AzureMinimalApiEFCore.Domain.Post", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("Archived")
                         .HasColumnType("bit");
 
-                    b.Property<int>("BlogId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("BlogId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Content")
                         .IsRequired()
