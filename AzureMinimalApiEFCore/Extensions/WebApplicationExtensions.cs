@@ -30,6 +30,7 @@ namespace AzureMinimalApiEFCore.Extensions
                 var blog = context.Blogs.Select(b => new BlogDto()
                 {
                     Name = b.Name,
+                    Id = b.Id,
                     Posts = b.Posts.Select(p => new PostDto()
                     {
                         Id = p.Id,
