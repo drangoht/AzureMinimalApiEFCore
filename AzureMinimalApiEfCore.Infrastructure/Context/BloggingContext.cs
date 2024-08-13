@@ -24,11 +24,7 @@ namespace AzureMinimalApiEfCore.Infrastructure.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Blog>()
-                .HasMany(e => e.Posts)
-                .WithOne(e => e.Blog)
-                .HasForeignKey(e => e.BlogId)
-                .HasPrincipalKey(e => e.Id);
+                
         }
     }
 }

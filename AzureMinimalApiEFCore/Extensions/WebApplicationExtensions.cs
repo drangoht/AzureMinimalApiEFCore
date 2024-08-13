@@ -1,7 +1,10 @@
 ﻿using AzureMinimalApiEfCore.Infrastructure.Context;
 using AzureMinimalApiEFCore.Domain;
+using AzureMinimalApiEFCore.dtos;
 using Microsoft.EntityFrameworkCore;
-
+using System.Linq;
+using System.Collections;
+using System.Collections.ObjectModel;
 namespace AzureMinimalApiEFCore.Extensions
 {
     public static class WebApplicationExtensions
@@ -24,12 +27,24 @@ namespace AzureMinimalApiEFCore.Extensions
         {
             try
             {
-                if (context.Posts == null)
+                var blog = context.Blogs.Select(b => new BlogDto()
+                {
+                    Name = b.Name,
+                    Id = b.Id,
+                    Posts = b.Posts.Select(p => new PostDto()
+                    {
+                        Id = p.Id,
+                        Archived = p.Archived,
+                        Content = p.Content,
+                        PublishedOn = p.PublishedOn,
+                        Title = p.Title
+                    }).ToList()
+                });
+                if (!await blog.AnyAsync())
                 {
                     return TypedResults.NotFound();
                 }
-                var blogsWithPosts = context.Blogs.Include(b => b.Posts).SelectMany(b => b.Posts, (blog, post) => new { blog, blog.Posts });
-                return TypedResults.Ok(await blogsWithPosts.ToListAsync());
+                return TypedResults.Ok(await blog.ToListAsync());
             }
             catch (Exception)
             {
@@ -41,7 +56,18 @@ namespace AzureMinimalApiEFCore.Extensions
         {
             try
             {
-                return TypedResults.Ok(await context.Blogs.ToListAsync());
+                var blogs = context.Blogs.Select(b => new BlogDto()
+                {
+                    Name = b.Name,
+                    Id = b.Id,
+                    SiteUri = b.SiteUri
+                });
+
+                if (!await blogs.AnyAsync())
+                {
+                    return TypedResults.NotFound();
+                }
+                return TypedResults.Ok(await blogs.ToListAsync());
             }
             catch (Exception)
             {
@@ -49,16 +75,24 @@ namespace AzureMinimalApiEFCore.Extensions
             }
         }
 
-        static async Task<IResult> GetBlog(int blogId, BloggingContext context)
+        static async Task<IResult> GetBlog(Guid blogId, BloggingContext context)
         {
             try
             {
-                var blog = context.Blogs.Include(b => b.Posts).FirstOrDefault(b => b.Id == blogId);
+                var blog = await context.Blogs.FirstOrDefaultAsync(b => b.Id == blogId);
                 if (blog == null)
                 {
                     return TypedResults.NotFound();
                 }
-                return TypedResults.Ok(blog);
+
+                var blogDto = new BlogDto()
+                {
+                    SiteUri = blog.SiteUri,
+                    Name = blog.Name,
+                    Id = blog.Id
+
+                };
+                return TypedResults.Ok(blogDto);
             }
             catch (Exception)
             {
@@ -66,41 +100,73 @@ namespace AzureMinimalApiEFCore.Extensions
             }
         }
 
-        static async Task<IResult> GetPosts(int blogId, BloggingContext context)
+        static async Task<IResult> GetPosts(Guid blogId, BloggingContext context)
         {
             try
             {
-                var blog = context.Blogs.Include(b => b.Posts).FirstOrDefault(b => b.Id == blogId);
-                if (blog == null)
+                var blog = context.Blogs.Where(b => b.Id==blogId).Select(b  => new BlogDto()
+                {
+                    Name = b.Name,
+                    Posts = b.Posts.Select(p => new PostDto()
+                    {
+                        Id = p.Id,
+                        Archived = p.Archived,
+                        Content = p.Content,
+                        PublishedOn = p.PublishedOn,
+                        Title = p.Title
+                    }).ToList()
+                });
+                if (!blog.Any())
                 {
                     return TypedResults.NotFound();
                 }
-                return TypedResults.Ok(blog.Posts.ToList());
+                return TypedResults.Ok(await blog.ToListAsync());
             }
             catch (Exception)
             {
                 return TypedResults.BadRequest();
             }
         }
-        static async Task<IResult> CreateBlog(Blog blog, BloggingContext context)
+        static async Task<IResult> CreateBlog(BlogDto blogDto, BloggingContext context)
         {
             try
             {
+                var blog = new Blog()
+                {
+                    Name = blogDto.Name,
+                    SiteUri = blogDto.SiteUri
+                };
+                if(blog.Posts ==null)
+                    blog.Posts = new Collection<Post>();
+                blogDto.Posts.ForEach(p => blog.Posts.Add(new Post()
+                {
+                    Archived = p.Archived,
+                    Content = p.Content,
+                    PublishedOn = p.PublishedOn,
+                    Title = p.Title
+                }));
                 context.Add(blog);
                 await context.SaveChangesAsync();
                 return TypedResults.Ok();
             }
-            catch (Exception)
+            catch (Exception )
             {
                 return TypedResults.BadRequest();
             }
         }
 
-        static async Task<IResult> CreatePost(int blogId, Post post, BloggingContext context)
+        static async Task<IResult> CreatePost(Guid blogId, PostDto postDto, BloggingContext context)
         {
             try
             {
-                var blog = context.Blogs.Include(b => b.Posts).First(b => b.Id == blogId);
+                var post = new Post()
+                {
+                    PublishedOn = postDto.PublishedOn,
+                    Archived = postDto.Archived,
+                    Content = postDto.Content,
+                    Title = postDto.Title
+                };
+                var blog = await context.Blogs.Include(b => b.Posts).FirstAsync(b => b.Id == blogId);
                 blog.Posts.Add(post);
                 await context.SaveChangesAsync();
                 return TypedResults.Ok();

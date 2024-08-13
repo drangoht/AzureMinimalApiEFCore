@@ -24,11 +24,9 @@ namespace AzureMinimalApiEfCore.Infrastructure.Migrations
 
             modelBuilder.Entity("AzureMinimalApiEFCore.Domain.Blog", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -45,17 +43,15 @@ namespace AzureMinimalApiEfCore.Infrastructure.Migrations
 
             modelBuilder.Entity("AzureMinimalApiEFCore.Domain.Post", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("Archived")
                         .HasColumnType("bit");
 
-                    b.Property<int>("BlogId")
-                        .HasColumnType("int");
+                    b.Property<Guid>("BlogId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Content")
                         .IsRequired()
